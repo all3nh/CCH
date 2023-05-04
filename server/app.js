@@ -1,17 +1,30 @@
+require('dotenv').config();
 const express = require('express');
-const pool = require('./database');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const database = require('./db/database');
+const authRoutes = require('./routes/auth');
+const imagesRoutes = require('./routes/images');
+const predictionsRoutes = require('./routes/predictions');
+
 const app = express();
 
-app.get('/users', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM users');
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Error querying the database');
-  }
-});
+// Middleware configuration
+app.use(cors()); // Enable CORS
+app.use(bodyParser.json()); // Parse JSON request bodies
+app.use(bodyParser.urlencoded({ extended: true })); // Parse URL-encoded request bodies
+app.use(express.static('public')); // Serve static files from the public directory
 
-app.listen(3000, () => {
-  console.log('Server listening on port 3000');
+// Connect to the database
+database.connect();
+
+// Routes configuration
+app.use('/api/auth', authRoutes);
+app.use('/api/images', imagesRoutes);
+app.use('/api/predictions', predictionsRoutes);
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });

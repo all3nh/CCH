@@ -1,15 +1,37 @@
-// server/db/queries.js
-
 const pool = require('./index.js');
 
 async function getUserByUsername(username) {
-  const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
-  return result.rows[0];
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+    return result.rows[0];
+  } catch (error) {
+    console.error(error);
+    throw new Error('Unable to retrieve user by username');
+  }
 }
 
-// ... more query functions
+async function createUser(username, password) {
+  try {
+    const result = await pool.query('INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *', [username, password]);
+    return result.rows[0];
+  } catch (error) {
+    console.error(error);
+    throw new Error('Unable to create user');
+  }
+}
+
+async function loginUser(username, password) {
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE username = $1 AND password = $2', [username, password]);
+    return result.rows[0];
+  } catch (error) {
+    console.error(error);
+    throw new Error('Unable to login user');
+  }
+}
 
 module.exports = {
   getUserByUsername,
-  // ... export more query functions
+  createUser,
+  loginUser
 };
